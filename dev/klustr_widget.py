@@ -46,7 +46,7 @@ from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,  
                                 QGroupBox, QLabel, QCheckBox, QPlainTextEdit,
                                 QGridLayout, QHBoxLayout, QVBoxLayout, QSplitter, QSizePolicy,
-                                QMessageBox, QTabWidget, QPushButton)
+                                QMessageBox, QTabWidget, QPushButton, QComboBox)
 from PySide6.QtGui import  (QImage, QPixmap, QIcon, QPainter, QFont, QPen, QBrush, QColor, 
                             QStandardItemModel, QStandardItem,
                             QClipboard)
@@ -395,21 +395,13 @@ class KlustRDataSourceViewWidget(QWidget):
             self._setup_gui()
 
             self._update_dataset()
-            self._create_tabs()
             # self.label_model.update_for_all_images(self.pg_cursor)
             # self.image_label_list_view.set_current_index(self.label_model.index(0, 0))
             # self.image_list_view.set_current_index(self.image_model.index(0, 0))
         else:
             self._setup_invalid_gui()
 
-    def _create_tabs(self):
-        self.tab_widget = QTabWidget()
-
-        self.tab1 = QWidget()
-        self.tab2 = QWidget()
-
-        self.tab_widget.add_tab(self.tab1, "Tab 1")
-        self.tab_widget.add_tab(self.tab1, "Tab 2")      
+    
 
     def _setup_models(self):
         self.dataset_model = KlustRDatasetModel()
@@ -572,42 +564,128 @@ class KlustRDataSourceViewWidget(QWidget):
 
 class ClassificationWidget(QWidget):
     
-    def __init__(self):
+    def __init__(self, credential):
         super().__init__()
         
+        self.sql_dao = PostgreSQLKlustRDAO(credential)
+        self.datasets = self.sql_dao.available_datasets
+        
         self.__auto_title_count = 0
+        self.__fixed_width = 350
         self.__scatter = q3.QScatter3dViewer()
         self.__scatter.shadow = q3.QScatter3dViewer.ShadowType.NoShadow
-        test_group = QGroupBox('Tests')
-        # test_group.set_fixed_width(150)
+        #GROUPS:
+        dataset_group = QGroupBox('Dataset')
+        test_group = QGroupBox('Single test')
+        knn_group = QGroupBox('Knn parameters')
+
         self.__scatter.size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        
+        #dataset:      
+        dataset_group.set_fixed_width(self.__fixed_width)
+        dataset_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        dataset_group_layout = QVBoxLayout(dataset_group)
+
+        #test:
+        test_group.set_fixed_width(self.__fixed_width)
         test_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
         test_group_layout = QVBoxLayout(test_group)
 
+        #KNN
+        knn_group.set_fixed_width(self.__fixed_width)
+        knn_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        knn_group_layout = QVBoxLayout(knn_group)
+
+        #settingsWidget
+        settings_layout = QVBoxLayout()
+        
+        settings_layout.add_widget(dataset_group)
+        settings_layout.add_widget(test_group)
+        settings_layout.add_widget(knn_group)
+
+
+        
+        #layout:
         layout = QHBoxLayout(self)
-        layout.add_widget(test_group)
+        layout.add_layout(settings_layout)
         layout.add_widget(self.__scatter)
         
-        buttons = [ QPushButton('Add serie : 1 random data point')
-                    , QPushButton('Add serie : 10 random data points')
-                    , QPushButton('Add serie : 100 random data points')
-                    , QPushButton('Remove first')
-                    , QPushButton('Remove random')
-                    , QPushButton('Remove last')
-                    , QPushButton('Clear')
-                    , QPushButton('Test') ]
-        actions = [   lambda : self.__scatter.add_serie(np.random.rand(3, 1) if choice([True, False]) else np.random.rand(1, 3), q3.QColorSequence.next(), self.__next_name(), 0.15) # test 3 x 1 + 1 x 3
-                    , lambda : self.__scatter.add_random_serie(10, q3.QColorSequence.next(), self.__next_name())
-                    , lambda : self.__scatter.add_random_serie(100, q3.QColorSequence.next(), self.__next_name())
-                    , lambda : self.__scatter.remove_serie(0)
-                    , lambda : self.__scatter.remove_serie(randint(0, self.__scatter.series_count - 1))
-                    , lambda : self.__scatter.remove_serie(self.__scatter.series_count - 1)
-                    , lambda : self.__scatter.clear()
-                    , self.__test ]
-        for button, action in zip(buttons, actions):
-            test_group_layout.add_widget(button)
-            button.clicked.connect(action)
-        test_group_layout.add_stretch()
+        
+
+        self.search_bar = QComboBox()
+        i = 0
+        for row in self.datasets:
+            i += 1
+            item = row[1] + " [" + str(row[5]) +"][" + str(row[6] + row[7]) + "]"
+            self.search_bar.insert_item(i, item, row)
+        
+        self.search_bar.currentIndexChanged.connect(self.__update_text)
+        
+        #included:
+        info_group = QGroupBox('Included in dataset')
+        test_group_layout = QVBoxLayout(info_group)
+        
+        category = QLabel("Category count:")
+        training_img = QLabel("Training image count:")
+        test_img = QLabel("Test image count:")
+        total_img = QLabel("Total image count:")
+        
+        self.category_value = QLabel("0")
+        self.training_img_value = QLabel("0")
+        self.test_img_value = QLabel("0")
+        self.total_img_value = QLabel("0")
+        
+        
+        self.create_text_layout(category, self.category_value, test_group_layout)
+        self.create_text_layout(training_img, self.training_img_value, test_group_layout)
+        self.create_text_layout(test_img, self.test_img_value, test_group_layout)
+        self.create_text_layout(total_img, self.total_img_value, test_group_layout)
+        
+        #transformation:
+        transformation_group = QGroupBox('Transformation')
+        transformation_layout = QVBoxLayout(transformation_group)
+        
+        translated = QLabel("Translated:")
+        rotated = QLabel("Rotated:")
+        scaled = QLabel("Scaled:")
+        
+        self.translated_value = QLabel("False")
+        self.rotated_value = QLabel("False")
+        self.scaled_value = QLabel("False")
+        
+        #compacted layouts
+        self.create_text_layout(translated, self.translated_value, transformation_layout)
+        self.create_text_layout(rotated, self.rotated_value, transformation_layout)
+        self.create_text_layout(scaled, self.scaled_value, transformation_layout)
+        
+        #info_layout
+        info_layout = QHBoxLayout()
+        info_layout.add_widget(info_group)
+        info_layout.add_widget(transformation_group)
+        dataset_group_layout.add_widget(self.search_bar)
+        dataset_group_layout.add_layout(info_layout)
+        
+        
+        #test layout:
+    def create_text_layout(self, text, value, parent):
+        layout = QHBoxLayout()
+        layout.add_widget(text)
+        layout.add_widget(value)
+        parent.add_layout(layout)
+        
+    @Slot()
+    def __update_text(self):
+        data = self.search_bar.current_data()
+        
+        print(data[1])
+        self.category_value.set_num(data[5])
+        self.training_img_value.set_num(data[6])
+        self.test_img_value.set_num(data[7])
+        self.total_img_value.set_num(data[6] + data[7])
+        
+        self.translated_value.text = str(data[2])
+        self.rotated_value.text = str(data[3])
+        self.scaled_value.text = str(data[4])
             
     @Slot()
     def __test(self):
@@ -651,7 +729,7 @@ if __name__ == '__main__':
     source_data_widget = KlustRDataSourceViewWidget(klustr_dao)
 
     tabs.add_tab(source_data_widget,"klustR Viewer")
-    tabs.add_tab(ClassificationWidget(),"Classification")
+    tabs.add_tab(ClassificationWidget(credential),"Classification")
     
     tabs.show()
 
