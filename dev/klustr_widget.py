@@ -574,52 +574,36 @@ class ClassificationWidget(QWidget):
         self.__fixed_width = 350
         self.__scatter = q3.QScatter3dViewer()
         self.__scatter.shadow = q3.QScatter3dViewer.ShadowType.NoShadow
-        #GROUPS:
-        dataset_group = QGroupBox('Dataset')
-        test_group = QGroupBox('Single test')
-        knn_group = QGroupBox('Knn parameters')
-
+        
         self.__scatter.size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
         
-        #dataset:      
-        dataset_group.set_fixed_width(self.__fixed_width)
-        dataset_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-        dataset_group_layout = QVBoxLayout(dataset_group)
 
-        #test:
-        test_group.set_fixed_width(self.__fixed_width)
-        test_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-        test_group_layout = QVBoxLayout(test_group)
-
-        #KNN
-        knn_group.set_fixed_width(self.__fixed_width)
-        knn_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-        knn_group_layout = QVBoxLayout(knn_group)
-
-        #settingsWidget
+        #Setting: combine les 3 layouts ensemble
         settings_layout = QVBoxLayout()
-        
-        settings_layout.add_widget(dataset_group)
-        settings_layout.add_widget(test_group)
-        settings_layout.add_widget(knn_group)
 
-
-        
-        #layout:
+        #layout: big layout
         layout = QHBoxLayout(self)
         layout.add_layout(settings_layout)
         layout.add_widget(self.__scatter)
         
-        
 
-        self.search_bar = QComboBox()
+#DATASET -----------------------------------------------------------------------------------------
+        dataset_group = QGroupBox('Dataset')
+        
+        dataset_group.set_fixed_width(self.__fixed_width)
+        dataset_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        dataset_group_layout = QVBoxLayout(dataset_group)
+        
+        settings_layout.add_widget(dataset_group)
+
+        self.data_search_bar = QComboBox()
         i = 0
         for row in self.datasets:
             i += 1
             item = row[1] + " [" + str(row[5]) +"][" + str(row[6] + row[7]) + "]"
-            self.search_bar.insert_item(i, item, row)
+            self.data_search_bar.insert_item(i, item, row)
         
-        self.search_bar.currentIndexChanged.connect(self.__update_text)
+        self.data_search_bar.currentIndexChanged.connect(self.__update_data)
         
         #included:
         info_group = QGroupBox('Included in dataset')
@@ -662,20 +646,44 @@ class ClassificationWidget(QWidget):
         info_layout = QHBoxLayout()
         info_layout.add_widget(info_group)
         info_layout.add_widget(transformation_group)
-        dataset_group_layout.add_widget(self.search_bar)
+        dataset_group_layout.add_widget(self.data_search_bar)
         dataset_group_layout.add_layout(info_layout)
         
+#Single Text -----------------------------------------------------------------------------------------
+        test_group = QGroupBox('Single test')
         
-        #test layout:
+        test_group.set_fixed_width(self.__fixed_width)
+        test_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        test_group_layout = QVBoxLayout(test_group)
+        
+        settings_layout.add_widget(test_group)
+        
+        self.img_search_bar = QComboBox()
+        test_group_layout.add_widget(self.img_search_bar)
+        #self.img_search_bar.currentIndexChanged.connect(self.__update_img) #TODO SLOT
+        
+        
+#KNN Param -----------------------------------------------------------------------------------------
+        knn_group = QGroupBox('Knn parameters')
+        
+        knn_group.set_fixed_width(self.__fixed_width)
+        knn_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        knn_group_layout = QVBoxLayout(knn_group)
+        
+        settings_layout.add_widget(knn_group)
+        
+
+# -----------------------------------------------------------------------------------------
+
     def create_text_layout(self, text, value, parent):
         layout = QHBoxLayout()
         layout.add_widget(text)
         layout.add_widget(value)
         parent.add_layout(layout)
-        
+      
     @Slot()
-    def __update_text(self):
-        data = self.search_bar.current_data()
+    def __update_data(self):
+        data = self.data_search_bar.current_data()
         
         print(data[1])
         self.category_value.set_num(data[5])
@@ -686,7 +694,22 @@ class ClassificationWidget(QWidget):
         self.translated_value.text = str(data[2])
         self.rotated_value.text = str(data[3])
         self.scaled_value.text = str(data[4])
-            
+        
+        #TODO: GET IMAGE FROM LABEL
+        # print(data)
+        # labels = self.sql_dao.labels_from_dataset(data[1])
+        # print(labels)
+        # i = 0
+        # self.img_search_bar.clear()
+        # for label in labels:
+        #     images = self.sql_dao.image_from_label(label[0])
+        #     for img in images:
+        #         i += 1
+        #         item = img[1]
+        #         self.img_search_bar.insert_item(i, item, img)
+        
+          
+          
     @Slot()
     def __test(self):
         self.__scatter.title = 'A test as title'
