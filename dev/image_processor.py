@@ -54,13 +54,15 @@ class ImageProcessor:
             liste contenant le nom de la forme et ses 3 determinants
         """
         img_array = ndarray_from_qimage_argb32(shape_img)
+
         # switch les 0 et les 1 pour que la forme soit remplie de 1
         img_array = 1 - img_array
 
         metric1 = ImageProcessor.__get_metric1(img_array)
         metric2 = ImageProcessor.__get_metric2(img_array)
+        metric3 = None
 
-        return [shape_name, metric1, metric2]
+        return [shape_name, metric1, metric2, metric3]
 
     @staticmethod
     def __get_metric1(img):
