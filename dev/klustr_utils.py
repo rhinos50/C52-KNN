@@ -1,5 +1,3 @@
-
-
 import numpy as np
 from PySide6 import QtCore, QtGui
 from __feature__ import snake_case, true_property 
