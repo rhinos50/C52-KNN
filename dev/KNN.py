@@ -19,5 +19,6 @@ class KNN():
     def __process_list(self, list):
 
         if(list[0] not in self.__category):
-
+            self.__category.append(list[0]) 
+        
         return np.ndarray(list)
