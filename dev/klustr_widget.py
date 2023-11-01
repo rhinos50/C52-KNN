@@ -659,8 +659,24 @@ class ClassificationWidget(QWidget):
         settings_layout.add_widget(test_group)
         
         self.img_search_bar = QComboBox()
+        self.img_search_bar.insert_item(0, "Select Dataset")
         test_group_layout.add_widget(self.img_search_bar)
-        #self.img_search_bar.currentIndexChanged.connect(self.__update_img) #TODO SLOT
+
+        #Image
+        self.view_label = QLabel()
+        self.view_label.alignment = Qt.AlignmentFlag.AlignCenter
+        test_group_layout.add_widget(self.view_label)
+        self.img_search_bar.currentIndexChanged.connect(self.__update_image)
+
+        #button
+        self.classify_button = QPushButton("Classify")
+        test_group_layout.add_widget(self.classify_button)
+
+        #text
+        self.class_text = QLabel("Not Classified")
+        self.class_text.alignment = Qt.AlignmentFlag.AlignCenter
+        test_group_layout.add_widget(self.class_text)
+        
         
         
 #KNN Param -----------------------------------------------------------------------------------------
@@ -671,7 +687,7 @@ class ClassificationWidget(QWidget):
         knn_group_layout = QVBoxLayout(knn_group)
         
         settings_layout.add_widget(knn_group)
-        
+
 
 # -----------------------------------------------------------------------------------------
 
@@ -685,7 +701,7 @@ class ClassificationWidget(QWidget):
     def __update_data(self):
         data = self.data_search_bar.current_data()
         
-        print(data[1])
+        print(data)
         self.category_value.set_num(data[5])
         self.training_img_value.set_num(data[6])
         self.test_img_value.set_num(data[7])
@@ -695,20 +711,27 @@ class ClassificationWidget(QWidget):
         self.rotated_value.text = str(data[3])
         self.scaled_value.text = str(data[4])
         
-        #TODO: GET IMAGE FROM LABEL
-        # print(data)
-        # labels = self.sql_dao.labels_from_dataset(data[1])
-        # print(labels)
-        # i = 0
-        # self.img_search_bar.clear()
-        # for label in labels:
-        #     images = self.sql_dao.image_from_label(label[0])
-        #     for img in images:
-        #         i += 1
-        #         item = img[1]
-        #         self.img_search_bar.insert_item(i, item, img)
+        self.sql_dao.set_transformation_filters(False, True, False, False) #TODO SET TRANSFORMATION
+        self.get_image_from_label(data[1])
         
-          
+    @Slot()
+    def __update_image(self):
+        img_data = self.img_search_bar.current_data()
+        qt_img = QImage(img_data[6], img_data[4], img_data[5], QImage.Format.Format_BGR888)
+        self.view_label.pixmap = QPixmap.from_image(qt_img) #TODO DISPLAY IMAGE
+
+    def get_image_from_label(self, dataset):
+
+        labels = self.sql_dao.labels_from_dataset(dataset)
+        #print(labels)
+        i = 0
+        self.img_search_bar.clear()
+        for label in labels:
+            images = self.sql_dao.image_from_label(label[0])
+            for img in images:
+                i += 1
+                item = img[3]
+                self.img_search_bar.insert_item(i, item, img)
           
     @Slot()
     def __test(self):
