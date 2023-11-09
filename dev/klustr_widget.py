@@ -46,7 +46,7 @@ from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,  
                                 QGroupBox, QLabel, QCheckBox, QPlainTextEdit,
                                 QGridLayout, QHBoxLayout, QVBoxLayout, QSplitter, QSizePolicy,
-                                QMessageBox, QTabWidget, QPushButton, QComboBox)
+                                QMessageBox, QTabWidget, QPushButton, QComboBox, QScrollBar)
 from PySide6.QtGui import  (QImage, QPixmap, QIcon, QPainter, QFont, QPen, QBrush, QColor, 
                             QStandardItemModel, QStandardItem,
                             QClipboard)
@@ -649,7 +649,7 @@ class ClassificationWidget(QWidget):
         dataset_group_layout.add_widget(self.data_search_bar)
         dataset_group_layout.add_layout(info_layout)
         
-#Single Text -----------------------------------------------------------------------------------------
+#Single Text --------------------------------------------------------------------------------------
         test_group = QGroupBox('Single test')
         
         test_group.set_fixed_width(self.__fixed_width)
@@ -688,18 +688,65 @@ class ClassificationWidget(QWidget):
         
         settings_layout.add_widget(knn_group)
 
+        self.K_label = QLabel()
+        self.K_scrollbar = QScrollBar()
 
-# -----------------------------------------------------------------------------------------
+        self.dist_label = QLabel()
+        self.dist_scrollbar = QScrollBar()
+
+        self.total_image_num = 50 
+
+        K_layout = self.__create_scrollbar_layout('K =', self.K_scrollbar, self.K_label, self.total_image_num / 4)
+        dist_layout = self.__create_scrollbar_layout('Max dist =', self.dist_scrollbar, self.dist_label, 20)
+
+        knn_group_layout.add_layout(K_layout)
+        knn_group_layout.add_layout(dist_layout)
+    
+
+# ABOUT -------------------------------------------------------------------------------------------
+
+        self.about_button = QPushButton("About")
+        settings_layout.add_widget(self.about_button)
+
+# -------------------------------------------------------------------------------------------------
 
     def create_text_layout(self, text, value, parent):
         layout = QHBoxLayout()
         layout.add_widget(text)
         layout.add_widget(value)
         parent.add_layout(layout)
+
+    def __create_scrollbar_layout(self, title, scrollbar, value_label, sb_max_range):
+        title_label = QLabel()
+
+        title_label.text = title
+        title_label.set_fixed_width(50)
+
+        value_label.set_num(0)
+        value_label.alignment = Qt.AlignmentFlag.AlignCenter
+        value_label.set_fixed_width(30)
+
+        scrollbar.set_range(0, sb_max_range) 
+        scrollbar.value = 0
+        scrollbar.orientation = Qt.Horizontal
+        scrollbar.set_fixed_width(220)
+
+        scrollbar.valueChanged.connect(value_label.set_num)
+        
+
+
+        layout = QHBoxLayout()
+        layout.add_widget(title_label)
+        layout.add_widget(value_label)
+        layout.add_widget(scrollbar)
+
+        return layout
       
     @Slot()
     def __update_data(self):
         data = self.data_search_bar.current_data()
+        
+        self.total_image_num = data[6] + data[7]
         
         print(data)
         self.category_value.set_num(data[5])
@@ -713,6 +760,10 @@ class ClassificationWidget(QWidget):
         
         self.sql_dao.set_transformation_filters(False, True, False, False) #TODO SET TRANSFORMATION
         self.get_image_from_label(data[1])
+
+        #update scrollbars
+        self.K_scrollbar.set_range(0, (data[6] + data[7]) / 4)
+        #self.dist_scrollbar.set_range(0, x)
         
     @Slot()
     def __update_image(self):
