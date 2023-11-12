@@ -35,28 +35,27 @@ class KNN():
     @return: Une String contenant la classification de la donné ou l'erreur survenue lors de la classifiaction
     """
     def classify(self, point):
-        # souleve une exception si le nombre de déterminants ne corespond pas aux données d'entrainements
+        # Souleve une exception si le nombre de déterminants ne corespond pas aux données d'entrainements
         if len(point) != self.__nb_determinant:
             raise ValueError("Le nombres de déterminants du point a classifier ne correspond pas au nombre de déterminants des données d'entrainements")
         
-        #1 - Trouver les distances
+        # 1 - Trouver les distances
         self.__calculate_distances(point)
 
-        #2 - Trouver les indices des k-nearest-neighbours et leur distances
+        # 2 - Trouver les indices des k-nearest-neighbours et leur distances
         distances = self._data[:, -1]
         nn_indices = np.argsort(distances)
         knn_indices = nn_indices[:self.__k] # On peut utiliser self.__k car l'indice commence a 0 et le slicing exclue la borne externe
         knn_distances = distances[knn_indices]
 
-        #3 - CAS LIMITE: Vérifier et filtrer les distances pour sortir uniquement ceux dans l'intervalle de contrôle
+        # 3 - CAS LIMITE: Vérifier et filtrer les distances pour sortir uniquement ceux dans l'intervalle de contrôle
         knn_indices = knn_indices[knn_distances <= self.__dist_max]
         knn_distances = knn_distances[knn_distances <= self.__dist_max]
         if (len(knn_distances)==0):
             return "Classification impossible car la aucune donné n'est comprise dans l'intervale de contrôle"
 
+        # 4 - CAS LIMITE: vérifier si il y a des égalitées dans les résultats (retourne la categorie ayant la moyenne de distance la plus proche)
         knn_categories = self._data[knn_indices, 0] # Trouver les categories de k-nearest-neighbours
-
-        #4 - CAS LIMITE: vérifier si il y a des égalitées dans les résultats (retourne la categorie ayant la moyenne de distance la plus proche)
         category_counts = np.bincount(knn_categories.astype(dtype=np.int16))
         max_count = np.max(category_counts)
         tie_indexes = np.where(category_counts == max_count)[0] # On veut l'index 0 car category_counts est un 1d array donc retournera qu'un seul tuple contenant nos indices 
