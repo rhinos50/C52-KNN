@@ -17,36 +17,6 @@ class KNN():
         mat = self.__process_list(new_point)
         self._data = np.vstack((self._data, mat))
 
-
-    """
-    Méthode permettant de classifier un point parmis les donnné d'entrainements
-
-    :parm point: Une liste python ou le premier argument est une string contenant la catégorie de la donné suivi de n déterminants
-    
-    @return: Une String contenant la classification de la donné ou l'erreur survenue lors de la classifiaction
-    """
-    def classify(self, point):
-
-        # trouver les distances
-        self.__calculate_distances(point)
-
-        # trouver les indices des k-nearest-neighbours
-        distances = self._data[:, -1]
-        nn_indices = np.argsort(distances)
-        knn_indices = nn_indices[:self.__k-1] # -1 car les indices de colonnes commencent a 0
-
-        # vérifier si les distances sont dans l'intervalle
-        if (np.max(distances[knn_indices]) > self.__dist_max):
-            return "Classification impossible car la aucune donné n'est comprise dans l'intervale de contrôle maximum"
-
-        # Step 4: Get categories of k nearest neighbors
-        nearest_neighbors_categories = self._data[knn_indices, 0]
-
-        # Step 5: Find the most common category among k nearest neighbors
-        predicted_category = np.bincount(nearest_neighbors_categories.astype(int)).argmax()
-
-        return self.__category[predicted_category]
-
     def __process_list(self, list):
         if len(list) != self.__nb_determinant+1:
             raise ValueError("Le nombre de colonnes dans la nouvelle ligne ne correspond pas aux données contenu dans _data.")
@@ -56,32 +26,87 @@ class KNN():
         list[0] = self.__category.index(list[0]) 
 
         return np.array(list, dtype=np.float16).reshape(1, -1)
+
+    """
+    Méthode permettant de classifier un point parmis les donnné d'entrainements
+
+    :parm point: Une liste python de n déterminants
+    
+    @return: Une String contenant la classification de la donné ou l'erreur survenue lors de la classifiaction
+    """
+    def classify(self, point):
+        # souleve une exception si le nombre de déterminants ne corespond pas aux données d'entrainements
+        if len(point) != self.__nb_determinant:
+            raise ValueError("Le nombres de déterminants du point a classifier ne correspond pas au nombre de déterminants des données d'entrainements")
+        
+        #1 - Trouver les distances
+        self.__calculate_distances(point)
+
+        #2 - Trouver les indices des k-nearest-neighbours et leur distances
+        distances = self._data[:, -1]
+        nn_indices = np.argsort(distances)
+        knn_indices = nn_indices[:self.__k] # On peut utiliser self.__k car l'indice commence a 0 et le slicing exclue la borne externe
+        knn_distances = distances[knn_indices]
+
+        #3 - CAS LIMITE: Vérifier et filtrer les distances pour sortir uniquement ceux dans l'intervalle de contrôle
+        knn_indices = knn_indices[knn_distances <= self.__dist_max]
+        knn_distances = knn_distances[knn_distances <= self.__dist_max]
+        if (len(knn_distances)==0):
+            return "Classification impossible car la aucune donné n'est comprise dans l'intervale de contrôle"
+
+        knn_categories = self._data[knn_indices, 0] # Trouver les categories de k-nearest-neighbours
+
+        #4 - CAS LIMITE: vérifier si il y a des égalitées dans les résultats (retourne la categorie ayant la moyenne de distance la plus proche)
+        category_counts = np.bincount(knn_categories.astype(dtype=np.int16))
+        max_count = np.max(category_counts)
+        tie_indexes = np.where(category_counts == max_count)[0] # On veut l'index 0 car category_counts est un 1d array donc retournera qu'un seul tuple contenant nos indices 
+
+        if (len(tie_indexes) > 1):
+            average_distances = []
+            for index in tie_indexes:
+                category_distances = knn_distances[knn_categories == index]
+                avg_distance = np.mean(category_distances)
+                average_distances.append(avg_distance)
+
+            predicted_category = tie_indexes[np.argmin(average_distances)]
+        else:
+            predicted_category = tie_indexes[0]
+
+        return self.__category[predicted_category]
     
     def __calculate_distances(self, new_point):
-        if len(new_point) != self.__nb_determinant:
-            raise ValueError("Le nombres de déterminants du point a classifier ne correspond pas au nombre de déterminants des données d'entrainements")
-
-        # Distances Euclidienne entre le point a classifier et toutes les autres points 
-        distances = np.linalg.norm(self._data[:, 1:] - new_point, axis=1)
-        distances = np.array(distances,dtype=np.float16).reshape(-1,1)
+        distances = np.linalg.norm(self._data[:, 1:] - new_point, axis=1) # Distances Euclidienne entre le point a classifier et toutes les autres points 
+        distances = np.array(distances,dtype=np.float16).reshape(-1,1) # reshape la matrice pour s'assurer qu'elle est de bonne taille pour le hStack
         self._data = np.hstack((self._data, distances))
-    
-#TODO: handle les cas limites
-        
-    
+           
 if __name__ == '__main__':
-    knn = KNN(3, 3, 0.001)
-    knn.add_point(['banana', 0.1, 0.2, 0.3])
-    knn.add_point(['pudding', 0.4, 0.5, 0.6])
-    knn.add_point(['pudding', 0.7, 0.8, 0.9])
-    knn.add_point(['roche', 0.7, 0.8, 0.9])
-    knn.add_point(['poil', 0.7, 0.8, 0.9])
-    knn.add_point(['banana', 0.7, 0.8, 0.9])
+    knn = KNN(7, 3, 0.001)
+    knn.add_point(['banana', 0.11, 0.12, 0.13])
+    knn.add_point(['banana', 0.13, 0.12, 0.11])
+    knn.add_point(['banana', 0.12, 0.13, 0.11])
+    knn.add_point(['pudding', 0.1, 0.12, 0.13])
+    # knn.add_point(['pudding', 0.1, 0.12, 0.13])
+    knn.add_point(['pudding', 0.24, 0.25, 0.26])
+    knn.add_point(['pudding', 0.24, 0.25, 0.26])
+    knn.add_point(['pudding', 0.24, 0.25, 0.26])
+    knn.add_point(['roche', 0.11, 0.12, 0.13])
+    knn.add_point(['roche', 0.41, 0.42, 0.43])
+    knn.add_point(['poil', 0.51, 0.52, 0.53])
+    
+    new_point = np.array([0.5, 0.5, 0.5], dtype=np.float16)
+
+    prediction = knn.classify(new_point)
+    print()
+    print(prediction)
+    # print()
+    # print(knn._data)
 
 
-    new_point = np.array([0.5, 0.6, 0.7], dtype=np.float16)
-    print(knn.classify(new_point))
+    # arr = np.array([0,0,4, 4, 2, 1, 6, 8, 3, 3, 4, 15, 23])
+    # freq_bin = np.bincount(arr)
+    # print("Input array - ", arr)
+    # print("Frequency bin/array - ", freq_bin)
+    # print("Length of Frequency bin/array - ", len(freq_bin))
+ 
 
     
-
-    print(knn._data)
