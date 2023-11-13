@@ -1,51 +1,14 @@
 import numpy as np
 from PySide6.QtGui import QImage
 from klustr_utils import ndarray_from_qimage_argb32
-import math
 
+from utils.shapecalculator import ShapeCalculator
 
-class ShapeCalculator:
-    
-    @staticmethod
-    def perimeter(image):
-        return np.sum(image[:, 1:] != image[:, :-1]) + \
-            np.sum(image[1:, :] != image[:-1, :])
-
-    @staticmethod
-    def area(image):
-        return np.sum(image)
-
-    @staticmethod
-    def centroid(image):
-        c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
-        return (np.sum(r * image), np.sum(c * image)) / ShapeCalculator.area(image)
-
-    @staticmethod
-    def max_dist(image, coord):
-        image = ShapeCalculator.__perimeter_array(image)
-        c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
-        points = np.column_stack((c[image == 1], r[image == 1]))
-        distances = np.linalg.norm(points - coord, axis=1)
-        return np.amax(distances)
-
-    @staticmethod
-    def __perimeter_array(original_image):
-        neighbors = np.array([(-1, 0), (0, -1), (1, 0), (0, 1)])
-        
-        shifted_images = [(np.roll(original_image, shift, axis=(0, 1)) == 0) 
-                          for shift in neighbors]
-        
-        combined_shifted = np.logical_or.reduce(shifted_images)
-
-        
-        new_array = original_image & combined_shifted
-        
-        return new_array
 
 class ImageProcessor:
 
     @staticmethod
-    def get_shape(shape_name: str, shape_img: QImage):
+    def get_shape(shape_name: str, shape_img: QImage) -> tuple(str, float, float, float):
         """Retourne le nom de la forme + les 3 determinants
 
         Args:
@@ -53,37 +16,56 @@ class ImageProcessor:
             shape_img (QImage): image binaire
 
         Returns:
-            list[str, np.ndarray, np.ndarray, np.ndarray]:
-            liste contenant le nom de la forme et ses 3 determinants
+            tuple[str, np.ndarray, np.ndarray, np.ndarray]:
+            tuple contenant le nom de la forme et ses 3 determinants
         """
         img_array = ndarray_from_qimage_argb32(shape_img)
 
         # switch les 0 et les 1 pour que la forme soit remplie de 1
         img_array = 1 - img_array
 
-        metric1 = ImageProcessor.__get_metric1(img_array)
-        metric2 = ImageProcessor.__get_metric2(img_array)
+        metric1 = ImageProcessor.__roundness(img_array)
+        metric2 = ImageProcessor.__circle_rapport(img_array)
         metric3 = ImageProcessor.__get_metric3(img_array)
 
-        return [shape_name, metric1, metric2, metric3]
+        return (shape_name, metric1, metric2, metric3)
 
     @staticmethod
-    def __get_metric1(img):
-        area = area(img)
+    def __roundness(img: np.ndarray) -> float:
+        """Retourne la circularité de l'aire et circonférence du cercle
+
+        Args:
+            img (np.ndarray): matrice de l'image
+
+        Returns:
+            float: ratio de la circularité
+        """
+        area = np.sum(img)
         perim = ShapeCalculator.perimeter(img)
 
-        return (4 * math.pi * area) / (perim ** 2)
+        return (4 * np.pi * area) / (perim ** 2)
 
     @staticmethod
-    def __get_metric2(img):
-        center = ShapeCalculator.centroid(img)
-        radius = ShapeCalculator.max_dist(img, center)
-        circle_area = math.pi * radius ** 2
+    def __circle_rapport(img: np.ndarray) -> float:
+        """Retourne un rapport de l'air de du petit cercle sur l'aire du grand cercle
+        créés avec le centre de l'image et la plus petite et grande distance de cette dernière.
 
-        metric2 = ShapeCalculator.area(img) / circle_area
+        Args:
+            img (np.ndarray): matrice de l'image
 
-        return metric2 if metric2 <= 1 else 1
+        Returns:
+            float: ratio du rapport
+        """
+        
+        min_radius, max_radius = ShapeCalculator.min_and_max(img)
+        small_circle_area = np.pi * min_radius ** 2
+        big_circle_area = np.pi * max_radius ** 2
+
+        metric2 = small_circle_area / big_circle_area
+
+        return metric2 
 
     @staticmethod
-    def __get_metric3(img):
-        return ShapeCalculator.area(img) / (img.shape[0] * img.shape[1])
+    def __get_metric3(img: np.ndarray) -> float:
+        return np.sum(img) / (img.shape[0] * img.shape[1])
+
