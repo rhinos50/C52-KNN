@@ -562,25 +562,3 @@ class KlustRDataSourceViewWidget(QWidget):
     def select_image(self, selected, deselected):
         if selected:
             self.image_info_widget.update_info(self.image_model.item_from_index(selected.indexes()[0]))
-
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    tabs = QTabWidget()
-    credential = PostgreSQLCredential(
-                      host='localhost', 
-                      port=5432, 
-                      database='postgres', 
-                      user='postgres', 
-                      password='AAAaaa123')
-    klustr_dao = PostgreSQLKlustRDAO(credential)
-
-    source_data_widget = KlustRDataSourceViewWidget(klustr_dao)
-
-    tabs.add_tab(source_data_widget,"klustR Viewer")
-    tabs.add_tab(ClassificationWidget(credential),"Classification")
-    
-    tabs.show()
-
-    sys.exit(app.exec())    
