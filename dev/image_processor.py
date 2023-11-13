@@ -4,40 +4,43 @@ from klustr_utils import ndarray_from_qimage_argb32
 import math
 
 
-def perimeter(image):
-    return np.sum(image[:, 1:] != image[:, :-1]) + \
-        np.sum(image[1:, :] != image[:-1, :])
+class ShapeCalculator:
+    
+    @staticmethod
+    def perimeter(image):
+        return np.sum(image[:, 1:] != image[:, :-1]) + \
+            np.sum(image[1:, :] != image[:-1, :])
 
+    @staticmethod
+    def area(image):
+        return np.sum(image)
 
-def area(image):
-    return np.sum(image)
+    @staticmethod
+    def centroid(image):
+        c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
+        return (np.sum(r * image), np.sum(c * image)) / ShapeCalculator.area(image)
 
+    @staticmethod
+    def max_dist(image, coord):
+        image = ShapeCalculator.__perimeter_array(image)
+        c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
+        points = np.column_stack((c[image == 1], r[image == 1]))
+        distances = np.linalg.norm(points - coord, axis=1)
+        return np.amax(distances)
 
-def centroid(image):
-    c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
-    return (np.sum(r * image), np.sum(c * image)) / area(image)
+    @staticmethod
+    def __perimeter_array(original_image):
+        neighbors = np.array([(-1, 0), (0, -1), (1, 0), (0, 1)])
+        
+        shifted_images = [(np.roll(original_image, shift, axis=(0, 1)) == 0) 
+                          for shift in neighbors]
+        
+        combined_shifted = np.logical_or.reduce(shifted_images)
 
-
-def max_dist(image, coord):
-    c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
-    points = np.column_stack((c[image == 1], r[image == 1]))
-    distances = np.linalg.norm(points - coord, axis=1)
-    return np.amax(distances)
-
-
-def draw_circle(image, center, radius):
-    c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
-    dist = np.sqrt((r-center[1])**2 + (c-center[0]) ** 2)
-    circle = (dist <= radius).astype(np.uint8)
-    image[:, :] = np.logical_or(image[:, :], circle)
-
-
-def draw_rectangle(image, top_left, bottom_right):
-    top_left = (max(0, top_left[0]), max(0, top_left[1]))
-    bottom_right = (min(image.shape[1], bottom_right[0]), min(image.shape[0],
-                                                              bottom_right[1]))
-    image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = 1
-
+        
+        new_array = original_image & combined_shifted
+        
+        return new_array
 
 class ImageProcessor:
 
@@ -60,38 +63,27 @@ class ImageProcessor:
 
         metric1 = ImageProcessor.__get_metric1(img_array)
         metric2 = ImageProcessor.__get_metric2(img_array)
-        metric3 = None
+        metric3 = ImageProcessor.__get_metric3(img_array)
 
         return [shape_name, metric1, metric2, metric3]
 
     @staticmethod
     def __get_metric1(img):
-        area = np.sum(img)
-        perim = perimeter(img)
+        area = area(img)
+        perim = ShapeCalculator.perimeter(img)
 
-        return 4 * math.pi * area / perim ** 2
+        return (4 * math.pi * area) / (perim ** 2)
 
     @staticmethod
     def __get_metric2(img):
-        center = centroid(img)
-        radius = max_dist(img, center)
+        center = ShapeCalculator.centroid(img)
+        radius = ShapeCalculator.max_dist(img, center)
         circle_area = math.pi * radius ** 2
 
-        metric2 = np.sum(img) / circle_area
+        metric2 = ShapeCalculator.area(img) / circle_area
 
         return metric2 if metric2 <= 1 else 1
 
-
-if __name__ == '__main__':
-    # TEST
-    original_array = np.zeros((20, 20), dtype=np.uint8)
-
-    draw_rectangle(original_array, (10, 10), (15, 15))
-    print(original_array)
-    center = centroid(original_array)
-    max = max_dist(original_array, center)
-
-    circle_area = math.pi * max ** 2
-    print(circle_area)
-    print(np.sum(original_array))
-    print(np.sum(original_array) / circle_area)
+    @staticmethod
+    def __get_metric3(img):
+        return ShapeCalculator.area(img) / (img.shape[0] * img.shape[1])
