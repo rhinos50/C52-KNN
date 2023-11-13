@@ -5,7 +5,7 @@ from klustr_utils import qimage_argb32_from_png_decoding
 
 
 from random import randint, choice
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import  (QWidget, QGroupBox, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QPushButton, QComboBox, QScrollBar)
 from PySide6.QtGui import  (QImage, QPixmap)
@@ -27,10 +27,9 @@ class ClassificationWidget(QWidget):
 
         #Settings Widget
         settings_widget = SettingsWidget(self.sql_dao)
-
         #layout: big layout
         layout = QHBoxLayout(self)
-        layout.add_layout(settings_widget)
+        layout.add_widget(settings_widget)
         layout.add_widget(self.__scatter)
               
     @Slot()
@@ -62,14 +61,14 @@ Series count : { self.__scatter.series_count }
 class SettingsWidget(QWidget):
        
     def __init__(self, sql_dao):
-        super.__init__()
+        super().__init__()
         
         self.sql_dao = sql_dao
         self.datasets = self.sql_dao.available_datasets
-        
+        self.__fixed_width = 350
             
         #Setting: combine les 3 layouts ensemble
-        settings_layout = QVBoxLayout()
+        settings_layout = QVBoxLayout(self)
         
 #DATASET -----------------------------------------------------------------------------------------
         dataset_group = QGroupBox('Dataset')
@@ -143,12 +142,16 @@ class SettingsWidget(QWidget):
         settings_layout.add_widget(test_group)
         
         self.img_search_bar = QComboBox()
+        
         self.img_search_bar.insert_item(0, "Select Dataset")
         test_group_layout.add_widget(self.img_search_bar)
 
         #Image
         self.view_label = QLabel()
+        self.view_label.set_fixed_size(QSize(330, 180))
+        self.view_label.style_sheet = 'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }' # 354A64
         self.view_label.alignment = Qt.AlignmentFlag.AlignCenter
+
         test_group_layout.add_widget(self.view_label)
         self.img_search_bar.currentIndexChanged.connect(self.__update_image)
 
@@ -251,9 +254,9 @@ class SettingsWidget(QWidget):
         
     @Slot()
     def __update_image(self):
-        img_data = self.img_search_bar.current_data()
-        qt_img = QImage(img_data[6], img_data[4], img_data[5], QImage.Format.Format_BGR888)
-        self.view_label.pixmap = QPixmap.from_image(qt_img) #TODO DISPLAY IMAGE
+        img_data = self.img_search_bar.current_data() #image_list_info        
+        image = qimage_argb32_from_png_decoding(img_data[6])
+        self.view_label.pixmap = QPixmap.from_image(image)
 
     def get_image_from_label(self, dataset):
 
@@ -265,5 +268,5 @@ class SettingsWidget(QWidget):
             images = self.sql_dao.image_from_label(label[0])
             for img in images:
                 i += 1
-                item = img[3]
+                item = img[3] #img[3]: image_id
                 self.img_search_bar.insert_item(i, item, img)
