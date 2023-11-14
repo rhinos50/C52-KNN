@@ -1,10 +1,12 @@
 import scatter_3d_viewer as q3
 import image_processor as imp
 import KNN as knn
+import numpy as np
 
 from klustr_dao import PostgreSQLKlustRDAO
 from klustr_utils import qimage_argb32_from_png_decoding
 
+from scatter_3d_viewer import QColorSequence
 from random import randint, choice
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtCore import Slot
@@ -27,12 +29,16 @@ class ClassificationWidget(QWidget):
         self.__scatter.size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
 
         #Settings Widget
-        settings_widget = SettingsWidget(self.sql_dao)
+        self.settings_widget = SettingsWidget(self.sql_dao)
         #layout: big layout
         layout = QHBoxLayout(self)
-        layout.add_widget(settings_widget)
+        layout.add_widget(self.settings_widget)
         layout.add_widget(self.__scatter)
+        
+        self.settings_widget.data_search_bar.currentIndexChanged.connect(self.__update_scatter)
               
+              
+    
     @Slot()
     def __test(self):
         self.__scatter.title = 'A test as title'
@@ -58,6 +64,18 @@ Series count : { self.__scatter.series_count }
     def __next_name(self):
                 self.__auto_title_count += 1
                 return f'Serie_{self.__auto_title_count:04}'
+    
+    @Slot()
+    def __update_scatter(self):
+        self.__scatter.clear()
+        knn = self.settings_widget.get_knn()
+        knn_data = knn.data
+        for i in range(0 , (knn_data[:,0].astype(int)).max()):
+            data3d = knn_data[knn_data[:,0] == i]
+            self.__scatter.add_serie(data3d[:,1:], QColorSequence.next(), knn.category[i]) #size_percent = 0.25
+       
+        
+        
             
 class SettingsWidget(QWidget):
        
@@ -275,4 +293,7 @@ class SettingsWidget(QWidget):
                 self.img_search_bar.insert_item(i, item, img)
                 self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
                 # print(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
-        print(self.knn._data)
+        print(self.knn.data)
+        
+    def get_knn(self):
+        return self.knn

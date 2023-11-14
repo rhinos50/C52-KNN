@@ -3,10 +3,10 @@ import numpy as np
 class KNN():
     def __init__(self, k, nb_determinant, dist_max):
         self.__nb_determinant = nb_determinant
-        self._data = np.empty((0,nb_determinant+1), dtype=np.float16)
+        self.data = np.empty((0,nb_determinant+1), dtype=np.float16)
         self.__dist_max = dist_max
         self.__k = k
-        self.__category = []
+        self.category = []
 
     """
     Méthode permettant d'ajouter des points aux données d'entrainement du KNN
@@ -15,15 +15,15 @@ class KNN():
     """
     def add_point(self, new_point):
         mat = self.__process_list(new_point)
-        self._data = np.vstack((self._data, mat))
+        self.data = np.vstack((self.data, mat))
 
     def __process_list(self, list):
         if len(list) != self.__nb_determinant+1:
             raise ValueError("Le nombre de colonnes dans la nouvelle ligne ne correspond pas aux données contenu dans _data.")
-        if(list[0] not in self.__category):
-            self.__category.append(list[0])
+        if(list[0] not in self.category):
+            self.category.append(list[0])
 
-        list[0] = self.__category.index(list[0]) 
+        list[0] = self.category.index(list[0]) 
 
         return np.array(list, dtype=np.float16).reshape(1, -1)
 
@@ -43,7 +43,7 @@ class KNN():
         self.__calculate_distances(point)
 
         # 2 - Trouver les indices des k-nearest-neighbours et leur distances
-        distances = self._data[:, -1]
+        distances = self.data[:, -1]
         nn_indices = np.argsort(distances)
         knn_indices = nn_indices[:self.__k] # On peut utiliser self.__k car l'indice commence a 0 et le slicing exclue la borne externe
         knn_distances = distances[knn_indices]
@@ -55,7 +55,7 @@ class KNN():
             return "Classification impossible car la aucune donné n'est comprise dans l'intervale de contrôle"
 
         # 4 - CAS LIMITE: vérifier si il y a des égalitées dans les résultats (retourne la categorie ayant la moyenne de distance la plus proche)
-        knn_categories = self._data[knn_indices, 0] # Trouver les categories de k-nearest-neighbours
+        knn_categories = self.data[knn_indices, 0] # Trouver les categories de k-nearest-neighbours
         category_counts = np.bincount(knn_categories.astype(dtype=np.int16))
         max_count = np.max(category_counts)
         tie_indexes = np.where(category_counts == max_count)[0] # On veut l'index 0 car category_counts est un 1d array donc retournera qu'un seul tuple contenant nos indices 
@@ -71,12 +71,12 @@ class KNN():
         else:
             predicted_category = tie_indexes[0]
 
-        return self.__category[predicted_category]
+        return self.category[predicted_category]
     
     def __calculate_distances(self, new_point):
-        distances = np.linalg.norm(self._data[:, 1:] - new_point, axis=1) # Distances Euclidienne entre le point a classifier et toutes les autres points 
+        distances = np.linalg.norm(self.data[:, 1:] - new_point, axis=1) # Distances Euclidienne entre le point a classifier et toutes les autres points 
         distances = np.array(distances,dtype=np.float16).reshape(-1,1) # reshape la matrice pour s'assurer qu'elle est de bonne taille pour le hStack
-        self._data = np.hstack((self._data, distances))
+        self.data = np.hstack((self.data, distances))
            
 if __name__ == '__main__':
     knn = KNN(7, 3, 0.001)
