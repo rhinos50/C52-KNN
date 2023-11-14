@@ -4,9 +4,11 @@ class KNN():
     def __init__(self, k, nb_determinant, dist_max):
         self.__nb_determinant = nb_determinant
         self.data = np.empty((0,nb_determinant+1), dtype=np.float16)
-        self.__dist_max = dist_max
-        self.__k = k
+        self.dist_max = dist_max
+        self.k = k
         self.category = []
+        
+        self.first_time = True
 
     """
     Méthode permettant d'ajouter des points aux données d'entrainement du KNN
@@ -45,12 +47,12 @@ class KNN():
         # 2 - Trouver les indices des k-nearest-neighbours et leur distances
         distances = self.data[:, -1]
         nn_indices = np.argsort(distances)
-        knn_indices = nn_indices[:self.__k] # On peut utiliser self.__k car l'indice commence a 0 et le slicing exclue la borne externe
+        knn_indices = nn_indices[:self.k] # On peut utiliser self.__k car l'indice commence a 0 et le slicing exclue la borne externe
         knn_distances = distances[knn_indices]
 
         # 3 - CAS LIMITE: Vérifier et filtrer les distances pour sortir uniquement ceux dans l'intervalle de contrôle
-        knn_indices = knn_indices[knn_distances <= self.__dist_max]
-        knn_distances = knn_distances[knn_distances <= self.__dist_max]
+        knn_indices = knn_indices[knn_distances <= self.dist_max]
+        knn_distances = knn_distances[knn_distances <= self.dist_max]
         if (len(knn_distances)==0):
             return "Classification impossible car la aucune donné n'est comprise dans l'intervale de contrôle"
 
@@ -74,9 +76,18 @@ class KNN():
         return self.category[predicted_category]
     
     def __calculate_distances(self, new_point):
-        distances = np.linalg.norm(self.data[:, 1:] - new_point, axis=1) # Distances Euclidienne entre le point a classifier et toutes les autres points 
-        distances = np.array(distances,dtype=np.float16).reshape(-1,1) # reshape la matrice pour s'assurer qu'elle est de bonne taille pour le hStack
-        self.data = np.hstack((self.data, distances))
+        if(self.first_time):
+            distances = np.linalg.norm(self.data[:, 1:] - new_point, axis=1) # Distances Euclidienne entre le point a classifier et toutes les autres points
+            distances = np.array(distances,dtype=np.float16).reshape(-1,1) # reshape la matrice pour s'assurer qu'elle est de bonne taille pour le hStack 
+            self.data = np.hstack((self.data, distances))
+            self.first_time = False
+        else:
+            distances = np.linalg.norm(self.data[:, 1:-1] - new_point, axis=1) # Distances Euclidienne entre le point a classifier et toutes les autres points 
+            distances = np.array(distances,dtype=np.float16).reshape(1,-1) # reshape la matrice pour s'assurer qu'elle est de bonne taille pour le hStack
+            print(self.data[:,-1] )
+            self.data[:,-1] = distances
+        
+        
            
 if __name__ == '__main__':
     knn = KNN(7, 3, 0.001)

@@ -40,34 +40,6 @@ class ClassificationWidget(QWidget):
         layout.add_widget(self.__scatter)
         
         self.settings_widget.data_search_bar.currentIndexChanged.connect(self.__update_scatter)
-              
-              
-    
-    @Slot()
-    def __test(self):
-        self.__scatter.title = 'A test as title'
-        self.__scatter.axis_x.title = 'Axis X'
-        self.__scatter.axis_y.title = 'Axis Y'
-        self.__scatter.axis_z.title = 'Axis Z'
-        self.__scatter.axis_x.range = None
-        self.__scatter.axis_y.range = (-1.0, 1.0)
-        self.__scatter.axis_z.range = (0.0, 2.0)
-        self.__scatter.shadow = q3.QScatter3dViewer.ShadowType.NoShadow
-        self.__scatter.auto_rotate = True
-        
-        print(f'''
-Title        : { self.__scatter.title }
-Axis x       : { self.__scatter.axis_x.title } - range{ self.__scatter.axis_x.range }
-Axis y       : { self.__scatter.axis_y.title } - range{ self.__scatter.axis_y.range }
-Axis z       : { self.__scatter.axis_z.title } - range{ self.__scatter.axis_z.range }
-Shadow       : { self.__scatter.shadow }
-Auto-rotate  : { self.__scatter.auto_rotate }
-Series count : { self.__scatter.series_count }
-''')
-
-    def __next_name(self):
-                self.__auto_title_count += 1
-                return f'Serie_{self.__auto_title_count:04}'
     
     @Slot()
     def __update_scatter(self):
@@ -92,6 +64,7 @@ class SettingsWidget(QWidget):
         self.datasets = self.sql_dao.available_datasets
         self.__fixed_width = 350
         self.knn = None
+        self.current_image = None
             
         #Setting: combine les 3 layouts ensemble
         settings_layout = QVBoxLayout(self)
@@ -184,6 +157,8 @@ class SettingsWidget(QWidget):
         #button
         self.classify_button = QPushButton("Classify")
         test_group_layout.add_widget(self.classify_button)
+        
+        self.classify_button.clicked.connect(self.__classify)
 
         #text
         self.class_text = QLabel("Not Classified")
@@ -246,8 +221,6 @@ class SettingsWidget(QWidget):
 
         scrollbar.valueChanged.connect(value_label.set_num)
         
-
-
         layout = QHBoxLayout()
         layout.add_widget(title_label)
         layout.add_widget(value_label)
@@ -257,12 +230,12 @@ class SettingsWidget(QWidget):
       
     @Slot()
     def __update_data(self):
-        self.knn = knn.KNN(self.K_scrollbar.value, 3, 0.1)
+        self.knn = knn.KNN(self.K_scrollbar.value, 3, 0.8)
         data = self.data_search_bar.current_data()
         
         self.total_image_num = data[6] + data[7]
         
-        print(data)
+        #print(data)
         self.category_value.set_num(data[5])
         self.training_img_value.set_num(data[6])
         self.test_img_value.set_num(data[7])
@@ -277,6 +250,8 @@ class SettingsWidget(QWidget):
 
         #update scrollbars
         self.K_scrollbar.set_range(0, (data[6] + data[7]) / 4)
+        self.K_scrollbar.value = ((data[6] + data[7]) / 4) / 3
+        self.knn.k = self.K_scrollbar.value
         #self.dist_scrollbar.set_range(0, x)
         
     @Slot()
@@ -284,6 +259,18 @@ class SettingsWidget(QWidget):
         img_data = self.img_search_bar.current_data() #image_list_info        
         image = qimage_argb32_from_png_decoding(img_data[6])
         self.view_label.pixmap = QPixmap.from_image(image)
+    
+    @Slot()
+    def __classify(self):
+        print("clicked")
+        img_data = self.img_search_bar.current_data()
+        processed_image = imp.ImageProcessor.get_shape(img_data[1], qimage_argb32_from_png_decoding(img_data[6]))
+        
+        self.class_text.text = self.knn.classify(processed_image[1::]) 
+        
+        #update KNN parameters:
+        self.knn.k = self.K_scrollbar.value
+
 
     def get_image_from_label(self, dataset):
 
@@ -299,7 +286,8 @@ class SettingsWidget(QWidget):
                 self.img_search_bar.insert_item(i, item, img)
                 self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
                 # print(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
-        print(self.knn.data)
+        #print(self.knn.data)
         
     def get_knn(self):
         return self.knn
+        
