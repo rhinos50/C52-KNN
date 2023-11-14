@@ -1,8 +1,9 @@
 import scatter_3d_viewer as q3
+import image_processor as imp
+import KNN as knn
 
 from klustr_dao import PostgreSQLKlustRDAO
 from klustr_utils import qimage_argb32_from_png_decoding
-
 
 from random import randint, choice
 from PySide6.QtCore import Qt, QSize
@@ -66,6 +67,7 @@ class SettingsWidget(QWidget):
         self.sql_dao = sql_dao
         self.datasets = self.sql_dao.available_datasets
         self.__fixed_width = 350
+        self.knn = None
             
         #Setting: combine les 3 layouts ensemble
         settings_layout = QVBoxLayout(self)
@@ -231,6 +233,7 @@ class SettingsWidget(QWidget):
       
     @Slot()
     def __update_data(self):
+        self.knn = knn.KNN(self.K_scrollbar.value, 3, 0.1)
         data = self.data_search_bar.current_data()
         
         self.total_image_num = data[6] + data[7]
@@ -270,3 +273,6 @@ class SettingsWidget(QWidget):
                 i += 1
                 item = img[3] #img[3]: image_id
                 self.img_search_bar.insert_item(i, item, img)
+                self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
+                # print(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
+        print(self.knn._data)

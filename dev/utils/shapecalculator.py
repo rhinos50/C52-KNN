@@ -3,20 +3,20 @@ import numpy as np
 class ShapeCalculator:
     
     @staticmethod
-    def perimeter(image: np.ndarray) -> int:
+    def perimeter(image: np.ndarray):
         """Retourne le perimetre de l'image"""
         return np.sum(image[:, 1:] != image[:, :-1]) + \
             np.sum(image[1:, :] != image[:-1, :])
 
 
     @staticmethod
-    def __centroid(image) -> tuple(float, float):
+    def __centroid(image):
         """Retourne le point centre de l'image"""
         c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
         return (np.sum(r * image), np.sum(c * image)) / np.sum(image)
 
     @staticmethod
-    def min_and_max(image: np.ndarray) -> tuple(float, float):
+    def min_and_max(image: np.ndarray):
         """Retourne une distance minimum et une distance maximum du centre
         de l'image et le point le plus proche et plus grand de cette dernière.
 
