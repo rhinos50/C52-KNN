@@ -24,6 +24,10 @@ class ClassificationWidget(QWidget):
         self.__auto_title_count = 0
         self.__fixed_width = 350
         self.__scatter = q3.QScatter3dViewer()
+        self.__scatter.title = 'Title'
+        self.__scatter.axis_x.title = 'Roundness'
+        self.__scatter.axis_y.title = 'Rapport de cercle'
+        self.__scatter.axis_z.title = 'Densité'
         self.__scatter.shadow = q3.QScatter3dViewer.ShadowType.NoShadow
         
         self.__scatter.size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
@@ -70,9 +74,11 @@ Series count : { self.__scatter.series_count }
         self.__scatter.clear()
         knn = self.settings_widget.get_knn()
         knn_data = knn.data
-        for i in range(0 , (knn_data[:,0].astype(int)).max()):
+        for i in range(0 , (knn_data[:,0].astype(int)).max()+1):
             data3d = knn_data[knn_data[:,0] == i]
             self.__scatter.add_serie(data3d[:,1:], QColorSequence.next(), knn.category[i]) #size_percent = 0.25
+            
+        print(data3d)
        
         
         
