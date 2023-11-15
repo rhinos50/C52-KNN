@@ -66,7 +66,17 @@ class ImageProcessor:
         return metric2 
 
     @staticmethod
-    def __density(img: np.ndarray):
+    def __density(img: np.ndarray) -> float:
+        """Retourne la densité de l'image et du cercle
+            créé avec la plus grosse distance à partir
+            du centre de l'image
+
+        Args:
+            img (np.ndarray): matrice de l'image
+
+        Returns:
+            float: densité de l'aire de l'image et de l'aire du cercle
+        """
         max_radius = ShapeCalculator.min_and_max(img)[1]
         big_circle_area = np.pi * max_radius ** 2
         return np.sum(img) / big_circle_area

@@ -276,23 +276,22 @@ class SettingsWidget(QWidget):
 
     def get_image_from_label(self, dataset):
 
-        labels = self.sql_dao.labels_from_dataset(dataset)
+        training_images = self.sql_dao.image_from_dataset(dataset, True)
+        test_images = self.sql_dao.image_from_dataset(dataset, False)
         #print(labels)
         i = 0
         self.img_search_bar.clear()
-        for label in labels:
-            images_test = self.sql_dao.image_from_dataset_label(dataset, label[0], False)
-            self.train_from_images(dataset, label)
-            #print(images_test)
-            for img in images_test:
-                i += 1
-                item = img[3] #img[3]: image_id
-                self.img_search_bar.insert_item(i, item, img)
+        for img in test_images:
+            i += 1
+            item = img[3] #img[3]: image_id
+            self.img_search_bar.insert_item(i, item, img)
+        
+       
+        [self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6]))) for img in training_images]  
     
-    def train_from_images(self, dataset, label):
-        images_train = self.sql_dao.image_from_dataset_label(dataset, label[0], True)
-        for img in images_train:
-            self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
+    # def train_from_images(self, dataset, label):
+    #     images_train = self.sql_dao.image_from_dataset_label(dataset, label[0], True)
+       
 
 
     
