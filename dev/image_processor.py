@@ -25,8 +25,8 @@ class ImageProcessor:
         img_array = 1 - img_array
 
         metric1 = ImageProcessor.__roundness(img_array)
-        metric2 = ImageProcessor.__circle_rapport(img_array)
-        metric3 = ImageProcessor.__get_metric3(img_array)
+        metric2 = ImageProcessor.__circle_ratio(img_array)
+        metric3 = ImageProcessor.__density(img_array)
 
         return [shape_name, metric1, metric2, metric3]
 
@@ -46,7 +46,7 @@ class ImageProcessor:
         return (4 * np.pi * area) / (perim ** 2)
 
     @staticmethod
-    def __circle_rapport(img: np.ndarray):
+    def __circle_ratio(img: np.ndarray):
         """Retourne un rapport de l'air de du petit cercle sur l'aire du grand cercle
         créés avec le centre de l'image et la plus petite et grande distance de cette dernière.
 
@@ -66,6 +66,8 @@ class ImageProcessor:
         return metric2 
 
     @staticmethod
-    def __get_metric3(img: np.ndarray):
-        return np.sum(img) / (img.shape[0] * img.shape[1])
+    def __density(img: np.ndarray):
+        max_radius = ShapeCalculator.min_and_max(img)[1]
+        big_circle_area = np.pi * max_radius ** 2
+        return np.sum(img) / big_circle_area
 

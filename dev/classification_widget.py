@@ -30,6 +30,8 @@ class ClassificationWidget(QWidget):
         self.__scatter.axis_z.title = 'Densité'
         self.__scatter.shadow = q3.QScatter3dViewer.ShadowType.NoShadow
         
+        
+        
         self.__scatter.size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
 
         #Settings Widget
@@ -50,7 +52,7 @@ class ClassificationWidget(QWidget):
             data3d = knn_data[knn_data[:,0] == i]
             self.__scatter.add_serie(data3d[:,1:], QColorSequence.next(), knn.category[i]) #size_percent = 0.25
             
-        print(data3d)
+        #print(data3d)
        
         
         
@@ -252,7 +254,8 @@ class SettingsWidget(QWidget):
         self.K_scrollbar.set_range(0, (data[6] + data[7]) / 4)
         self.K_scrollbar.value = ((data[6] + data[7]) / 4) / 3
         self.knn.k = self.K_scrollbar.value
-        #self.dist_scrollbar.set_range(0, x)
+        
+        self.dist_scrollbar.set_range(0.0, 1.0)
         
     @Slot()
     def __update_image(self):
@@ -262,7 +265,6 @@ class SettingsWidget(QWidget):
     
     @Slot()
     def __classify(self):
-        print("clicked")
         img_data = self.img_search_bar.current_data()
         processed_image = imp.ImageProcessor.get_shape(img_data[1], qimage_argb32_from_png_decoding(img_data[6]))
         
@@ -279,15 +281,21 @@ class SettingsWidget(QWidget):
         i = 0
         self.img_search_bar.clear()
         for label in labels:
-            images = self.sql_dao.image_from_label(label[0])
-            for img in images:
+            images_test = self.sql_dao.image_from_dataset_label(dataset, label[0], False)
+            self.train_from_images(dataset, label)
+            #print(images_test)
+            for img in images_test:
                 i += 1
                 item = img[3] #img[3]: image_id
                 self.img_search_bar.insert_item(i, item, img)
-                self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
-                # print(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
-        #print(self.knn.data)
-        
+    
+    def train_from_images(self, dataset, label):
+        images_train = self.sql_dao.image_from_dataset_label(dataset, label[0], True)
+        for img in images_train:
+            self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6])))
+
+
+    
     def get_knn(self):
         return self.knn
         
