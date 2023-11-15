@@ -35,31 +35,35 @@ class AboutWidget(QWidget):
                                 \n- Maxime Desrochers \
                                 \n- Emmanuel Senosier \n"
         
-        self.concepts.text = "Il consiste à faire __quelque_chose__ avec les concepts suivants: \
-                                \n-__concept_1__ \
-                                \n-__concept_n__ \n"
+        self.concepts.text = "Il consiste à faire un algorithme de classification d'image binaire avec les concepts suivants: \
+                                \n-Algorithme KNN \
+                                \n-Vectorisation \
+                                \n-Accès a une base de donnés \n"
         
         self.descripteurs.text = "Nos 3 descripteurs de forme sont: \
-                                \n-Roundness \
-                                    \n  -en __unité__ pour le domaine __domaine__ \
-                                    \n  -correspondant à __courte_description__ \
-                                \n-Circle Ratio \
-                                    \n  -en __unité__ pour le domaine __domaine__ \
-                                    \n  -correspondant à __courte_description__ \
+                                \n-Circularité \
+                                    \n  -en ratio pour le domaine [0, 1] \
+                                    \n  -correspondant à un ratio de l'aire de la forme par le périmètre au carré, plus la forme est ronde, plus la valeur tendera vers 1. \
+                                \n-Ratio de cercle \
+                                    \n  -en ratio pour le domaine [0, 1] \
+                                    \n  -correspondant à un ratio d'un cercle englobant la forme par le cercle créé par la plus petite distance du centroide \
                                 \n-Densité \
-                                    \n  -en __unité__ pour le domaine __domaine__ \
-                                    \n  -correspondant à __courte_description__ \n"
+                                    \n  -en ratio pour le domaine [0, 1] \
+                                    \n  -correspondant à un ratio de l'aire de la forme par l'aire du cercle qui l'englobe \n"
                                                
         self.notions.text = "Plus précisément, ce laboratoire permet de mettre en pratique les notions de: \
-                            \n-__notion_1__ \
-                            \n-__notion_n__ \n"
+                            \n-Numpy \
+                            \n-Pyside6 \
+                            \n-SQL \
+                            \n-Interface QT \n"
         
         self.abstraction.text = "Un effort d'abstraction a été fait pour ces points: \
-                                \n-__point_1__ \
-                                \n-__point_n__ \n"
+                                \n-L'efficacité du KNN \
+                                \n-La rapidité du programme \
+                                \n-La précision des métriques \n"
         
         self.most_complex.text = "Finalement, l'ensemble de données le plus complexe que nous avons été capable de résoudre est: \
-                                \n-__nom_de_l_ensemble_de_données__"
+                                \n-Zoo-Large"
         
         
         self.about_layout.add_widget(self.title)
