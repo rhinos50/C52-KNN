@@ -77,7 +77,7 @@ class SettingsWidget(QWidget):
         self.dataset_widget.rotated_value.text = str(data[3])
         self.dataset_widget.scaled_value.text = str(data[4])
         
-        self.sql_dao.set_transformation_filters(False, True, False, False) #TODO SET TRANSFORMATION
+        self.sql_dao.set_transformation_filters(False, True, False, False)
         self.get_image_from_label(data[1])
 
         #update scrollbars
@@ -90,7 +90,7 @@ class SettingsWidget(QWidget):
     @Slot()
     def __update_image(self):
         img_data = self.single_test_widget.img_search_bar.current_data() #image_list_info        
-        image = qimage_argb32_from_png_decoding(img_data[6])
+        image = qimage_argb32_from_png_decoding(img_data[6]) #TypeError: 'NoneType' object is not subscriptable -> called when not initialized, normal
         self.single_test_widget.view_label.pixmap = QPixmap.from_image(image)
     
     @Slot()

@@ -12,8 +12,6 @@ class DatasetWidget(QWidget):
         self.dataset_group.set_fixed_width(fixed_width)
         self.dataset_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
         dataset_group_layout = QVBoxLayout(self.dataset_group)
-        
-        #settings_layout.add_widget(dataset_group) #TODO
 
         self.data_search_bar = QComboBox()
         i = 0
