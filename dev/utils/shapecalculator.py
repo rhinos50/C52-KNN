@@ -3,10 +3,9 @@ import numpy as np
 class ShapeCalculator:
     
     @staticmethod
-    def perimeter(image: np.ndarray) -> int:
+    def perimeter(image: np.ndarray):
         """Retourne le perimetre de l'image"""
-        return np.sum(image[:, 1:] != image[:, :-1]) + \
-            np.sum(image[1:, :] != image[:-1, :])
+        return np.sum(image[:, 1:] != image[:, :-1]) + np.sum(image[1:, :] != image[:-1, :])
 
 
     @staticmethod

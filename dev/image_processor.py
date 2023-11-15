@@ -8,7 +8,7 @@ from utils.shapecalculator import ShapeCalculator
 class ImageProcessor:
 
     @staticmethod
-    def get_shape(shape_name: str, shape_img: QImage) -> tuple(str, float, float, float):
+    def get_shape(shape_name: str, shape_img: QImage):
         """Retourne le nom de la forme + les 3 determinants
 
         Args:
@@ -28,10 +28,10 @@ class ImageProcessor:
         metric2 = ImageProcessor.__circle_rapport(img_array)
         metric3 = ImageProcessor.__get_metric3(img_array)
 
-        return (shape_name, metric1, metric2, metric3)
+        return [shape_name, metric1, metric2, metric3]
 
     @staticmethod
-    def __roundness(img: np.ndarray) -> float:
+    def __roundness(img: np.ndarray):
         """Retourne la circularité de l'aire et circonférence du cercle
 
         Args:
@@ -46,7 +46,7 @@ class ImageProcessor:
         return (4 * np.pi * area) / (perim ** 2)
 
     @staticmethod
-    def __circle_rapport(img: np.ndarray) -> float:
+    def __circle_rapport(img: np.ndarray):
         """Retourne un rapport de l'air de du petit cercle sur l'aire du grand cercle
         créés avec le centre de l'image et la plus petite et grande distance de cette dernière.
 
@@ -66,6 +66,6 @@ class ImageProcessor:
         return metric2 
 
     @staticmethod
-    def __get_metric3(img: np.ndarray) -> float:
+    def __get_metric3(img: np.ndarray):
         return np.sum(img) / (img.shape[0] * img.shape[1])
 
