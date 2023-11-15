@@ -37,7 +37,7 @@ import numpy as np
 from db_credential import PostgreSQLCredential
 from klustr_dao import PostgreSQLKlustRDAO
 from klustr_utils import qimage_argb32_from_png_decoding
-from classification_widget import ClassificationWidget
+from widgets.classification_widget import ClassificationWidget
 
 
 from random import randint, choice

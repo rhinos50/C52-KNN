@@ -1,10 +1,9 @@
 import sys
 
-
 from db_credential import PostgreSQLCredential
 from klustr_dao import PostgreSQLKlustRDAO
-from classification_widget import ClassificationWidget
-from klustr_widget import KlustRDataSourceViewWidget
+from widgets.classification_widget import ClassificationWidget
+from widgets.klustr_widget import KlustRDataSourceViewWidget
 
 from PySide6.QtWidgets import  (QApplication, QTabWidget)
 from __feature__ import snake_case, true_property 
