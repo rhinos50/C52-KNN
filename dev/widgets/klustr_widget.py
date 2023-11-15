@@ -30,25 +30,18 @@
 # Cette dernière approche serait plus complexe et longue à mettre en place mais 
 # beaucoup plus efficace et, surtout, plus modulaire.
 
-import sys
-import scatter_3d_viewer as q3
-import numpy as np
-
-from db_credential import PostgreSQLCredential
-from klustr_dao import PostgreSQLKlustRDAO
 from klustr_utils import qimage_argb32_from_png_decoding
-from classification_widget import ClassificationWidget
 
 
 from random import randint, choice
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtCore import Signal, Slot
-from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,  
+from PySide6.QtCore import Slot
+from PySide6.QtWidgets import  (QWidget, QListView, QTreeView,  
                                 QGroupBox, QLabel, QCheckBox, QPlainTextEdit,
                                 QGridLayout, QHBoxLayout, QVBoxLayout, QSplitter, QSizePolicy,
-                                QMessageBox, QTabWidget, QPushButton, QComboBox, QScrollBar)
-from PySide6.QtGui import  (QImage, QPixmap, QIcon, QPainter, QFont, QPen, QBrush, QColor, 
+                                QMessageBox)
+from PySide6.QtGui import  (QPixmap, QIcon, QPainter, QPen, QBrush, QColor, 
                             QStandardItemModel, QStandardItem,
                             QClipboard)
 from __feature__ import snake_case, true_property 
@@ -562,25 +555,3 @@ class KlustRDataSourceViewWidget(QWidget):
     def select_image(self, selected, deselected):
         if selected:
             self.image_info_widget.update_info(self.image_model.item_from_index(selected.indexes()[0]))
-
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    tabs = QTabWidget()
-    credential = PostgreSQLCredential(
-                      host='localhost', 
-                      port=5432, 
-                      database='postgres', 
-                      user='postgres', 
-                      password='AAAaaa123')
-    klustr_dao = PostgreSQLKlustRDAO(credential)
-
-    source_data_widget = KlustRDataSourceViewWidget(klustr_dao)
-
-    tabs.add_tab(source_data_widget,"klustR Viewer")
-    tabs.add_tab(ClassificationWidget(credential),"Classification")
-    
-    tabs.show()
-
-    sys.exit(app.exec())    
