@@ -30,25 +30,18 @@
 # Cette dernière approche serait plus complexe et longue à mettre en place mais 
 # beaucoup plus efficace et, surtout, plus modulaire.
 
-import sys
-import scatter_3d_viewer as q3
-import numpy as np
-
-from db_credential import PostgreSQLCredential
-from klustr_dao import PostgreSQLKlustRDAO
 from klustr_utils import qimage_argb32_from_png_decoding
-from widgets.classification_widget import ClassificationWidget
 
 
 from random import randint, choice
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtCore import Signal, Slot
-from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,  
+from PySide6.QtCore import Slot
+from PySide6.QtWidgets import  (QWidget, QListView, QTreeView,  
                                 QGroupBox, QLabel, QCheckBox, QPlainTextEdit,
                                 QGridLayout, QHBoxLayout, QVBoxLayout, QSplitter, QSizePolicy,
-                                QMessageBox, QTabWidget, QPushButton, QComboBox, QScrollBar)
-from PySide6.QtGui import  (QImage, QPixmap, QIcon, QPainter, QFont, QPen, QBrush, QColor, 
+                                QMessageBox)
+from PySide6.QtGui import  (QPixmap, QIcon, QPainter, QPen, QBrush, QColor, 
                             QStandardItemModel, QStandardItem,
                             QClipboard)
 from __feature__ import snake_case, true_property 

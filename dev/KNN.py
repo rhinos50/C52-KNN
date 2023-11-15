@@ -106,17 +106,10 @@ if __name__ == '__main__':
     new_point = np.array([0.5, 0.5, 0.5], dtype=np.float16)
 
     prediction = knn.classify(new_point)
-    print()
+
     print(prediction)
     # print()
     # print(knn._data)
-
-
-    # arr = np.array([0,0,4, 4, 2, 1, 6, 8, 3, 3, 4, 15, 23])
-    # freq_bin = np.bincount(arr)
-    # print("Input array - ", arr)
-    # print("Frequency bin/array - ", freq_bin)
-    # print("Length of Frequency bin/array - ", len(freq_bin))
  
 
     

@@ -1,9 +1,6 @@
-import scatter_3d_viewer as q3
 import image_processor as imp 
 import KNN as knn
-import numpy as np
 
-from klustr_dao import PostgreSQLKlustRDAO
 from klustr_utils import qimage_argb32_from_png_decoding
 
 from widgets.dataset_widget import DatasetWidget
@@ -11,12 +8,9 @@ from widgets.single_test_widget import SingleTestWidget
 from widgets.knn_param_widget import KNNParamsWidget
 from widgets.about_widget import AboutWindow
 
-from scatter_3d_viewer import QColorSequence
-from random import randint, choice
-from PySide6.QtCore import Qt, QSize
 from PySide6.QtCore import Slot
-from PySide6.QtWidgets import  (QWidget, QGroupBox, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QPushButton, QComboBox, QScrollBar)
-from PySide6.QtGui import  (QImage, QPixmap)
+from PySide6.QtWidgets import  (QWidget, QVBoxLayout, QPushButton)
+from PySide6.QtGui import  QPixmap
 from __feature__ import snake_case, true_property
 
 class SettingsWidget(QWidget):
@@ -124,9 +118,7 @@ class SettingsWidget(QWidget):
         
        
         [self.knn.add_point(imp.ImageProcessor.get_shape(img[1], qimage_argb32_from_png_decoding(img[6]))) for img in training_images]  
-    
-    # def train_from_images(self, dataset, label):
-    #     images_train = self.sql_dao.image_from_dataset_label(dataset, label[0], True)
        
+
     def get_knn(self):
         return self.knn

@@ -1,18 +1,5 @@
-import scatter_3d_viewer as q3
-import image_processor as imp 
-import KNN as knn
-import numpy as np
-
-from klustr_dao import PostgreSQLKlustRDAO
-from klustr_utils import qimage_argb32_from_png_decoding
-from widgets.about_widget import AboutWindow
-
-from scatter_3d_viewer import QColorSequence
-from random import randint, choice
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtCore import Slot
-from PySide6.QtWidgets import  (QWidget, QGroupBox, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QPushButton, QComboBox, QScrollBar)
-from PySide6.QtGui import  (QImage, QPixmap)
+from PySide6.QtWidgets import  (QWidget, QGroupBox, QLabel, QVBoxLayout, QSizePolicy, QPushButton, QComboBox)
 from __feature__ import snake_case, true_property
 
 class SingleTestWidget(QWidget):
@@ -26,8 +13,6 @@ class SingleTestWidget(QWidget):
         self.test_group.set_fixed_width(fixed_width)
         self.test_group.size_policy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
         test_group_layout = QVBoxLayout(self.test_group)
-        
-        #settings_layout.add_widget(test_group)
         
         self.img_search_bar = QComboBox()
         

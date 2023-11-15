@@ -1,6 +1,5 @@
 import sys 
 
-from random import randint, choice
 from PySide6.QtWidgets import  (QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout)
 from __feature__ import snake_case, true_property
 
@@ -11,7 +10,7 @@ class AboutWindow(QMainWindow):
         self.about_widget = AboutWidget()
         
         self.set_central_widget(self.about_widget)
-        
+
         
 class AboutWidget(QWidget):
     def __init__(self):

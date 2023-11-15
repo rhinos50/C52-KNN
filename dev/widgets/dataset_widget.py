@@ -1,18 +1,4 @@
-import scatter_3d_viewer as q3
-import image_processor as imp 
-import KNN as knn
-import numpy as np
-
-from klustr_dao import PostgreSQLKlustRDAO
-from klustr_utils import qimage_argb32_from_png_decoding
-from widgets.about_widget import AboutWindow
-
-from scatter_3d_viewer import QColorSequence
-from random import randint, choice
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtCore import Slot
-from PySide6.QtWidgets import  (QWidget, QGroupBox, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QPushButton, QComboBox, QScrollBar)
-from PySide6.QtGui import  (QImage, QPixmap)
+from PySide6.QtWidgets import  (QWidget, QGroupBox, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QComboBox)
 from __feature__ import snake_case, true_property
 
 class DatasetWidget(QWidget):
