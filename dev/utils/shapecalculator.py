@@ -10,13 +10,13 @@ class ShapeCalculator:
 
 
     @staticmethod
-    def __centroid(image) -> tuple(float, float):
+    def __centroid(image) -> tuple[float, float]:
         """Retourne le point centre de l'image"""
         c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
         return (np.sum(r * image), np.sum(c * image)) / np.sum(image)
 
     @staticmethod
-    def min_and_max(image: np.ndarray) -> tuple(float, float):
+    def min_and_max(image: np.ndarray) -> tuple[float, float]:
         """Retourne une distance minimum et une distance maximum du centre
         de l'image et le point le plus proche et plus grand de cette dernière.
 
@@ -30,13 +30,12 @@ class ShapeCalculator:
         center = ShapeCalculator.__centroid(image)
         image = ShapeCalculator.__perimeter_array(image)
         c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
-        points = np.column_stack((c[image == 1], r[image == 1]))
+        points = np.column_stack((r[image == 1], c[image == 1]))
         distances = np.linalg.norm(points - center, axis=1)
-
         return np.amin(distances), np.amax(distances)
 
     @staticmethod
-    def __perimeter_array(original_image):
+    def __perimeter_array(image: np.ndarray) -> np.ndarray:
         """Retourne une matrice avec seulement les points du périmètre.
         
         
@@ -46,11 +45,11 @@ class ShapeCalculator:
         """
         neighbors = np.array([(-1, 0), (0, -1), (1, 0), (0, 1)])
         
-        shifted_images = [(np.roll(original_image, shift, axis=(0, 1)) == 0) 
+        shifted_images = [(np.roll(image, shift, axis=(0, 1)) == 0) 
                           for shift in neighbors]
         
         combined_shifted = np.logical_or.reduce(shifted_images)
 
-        new_array = original_image & combined_shifted
+        perim_array = image & combined_shifted
         
-        return new_array
+        return perim_array
